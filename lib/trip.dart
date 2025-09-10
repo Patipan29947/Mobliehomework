@@ -39,20 +39,40 @@ class _TripPageState extends State<TripPage> {
           return Column(
             children: [
               Card(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    
-                    Text(tripIdxGetResponse.name,
-                        style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text(
+                      tripIdxGetResponse.name,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    // 🔹 เพิ่มระยะห่าง
+                    const SizedBox(height: 8),
+
                     Image.network(tripIdxGetResponse.coverimage),
-                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                    const SizedBox(
+                      height: 8,
+                    ), // ถ้าอยากให้เว้นอีกด้านล่างรูปด้วย
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("ราคา "+tripIdxGetResponse.price.toString(),
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold)),
-                        Text("โซนประเทศ"+tripIdxGetResponse.destinationZone,
-                            style: const TextStyle(fontSize: 16)),
+                        Text(
+                          "ราคา ${tripIdxGetResponse.price}",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          "โซนประเทศ ${tripIdxGetResponse.destinationZone}",
+                          style: const TextStyle(fontSize: 16),
+                        ),
                       ],
                     ),
                     Padding(
@@ -61,7 +81,7 @@ class _TripPageState extends State<TripPage> {
                     ),
                   ],
                 ),
-              )
+              ),
             ],
           );
         },

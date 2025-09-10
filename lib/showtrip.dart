@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/profile.dart';
 import 'package:flutter_application_1/trip.dart';
@@ -19,15 +18,13 @@ class showtrip extends StatefulWidget {
 class _showtripState extends State<showtrip> {
   String url = '';
   List<Tripgetres> tripGetResponses = [];
+  List<Tripgetres> allTrips = [];
   late Future<void> loadData;
 
   @override
   void initState() {
     super.initState();
-    Configuration.getConfig().then((config) {
-      url = config['apiEndpoint'];
-      getTrips();
-    });
+    loadData = loadDataAsync();
   }
 
   @override
@@ -41,7 +38,6 @@ class _showtripState extends State<showtrip> {
             onSelected: (value) {
               log(value);
               if (value == 'profile') {
-                // Navigate to profile page
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -49,7 +45,6 @@ class _showtripState extends State<showtrip> {
                   ),
                 );
               } else if (value == 'logout') {
-                // Perform logout operation
                 Navigator.of(context).popUntil((route) => route.isFirst);
               }
             },
@@ -79,54 +74,48 @@ class _showtripState extends State<showtrip> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('ปลายทาง'),
+                  const Text('ปลายทาง'),
                   SizedBox(
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
                           FilledButton(
-                            onPressed: () => getTrips(),
+                            onPressed: () {
+                              setState(() {
+                                tripGetResponses = List.from(allTrips);
+                              });
+                            },
                             child: const Text('ทั้งหมด'),
                           ),
                           FilledButton(
                             onPressed: () {
-                              List<Tripgetres> eurotrip = [];
-                              for (var trip in tripGetResponses) {
-                                if (trip.destinationZone == 'ยุโรป') {
-                                  eurotrip.add(trip);
-                                }
-                              }
                               setState(() {
-                                tripGetResponses = eurotrip;
+                                tripGetResponses = allTrips
+                                    .where((t) => t.destinationZone == 'ยุโรป')
+                                    .toList();
                               });
                             },
                             child: const Text('ยุโรป'),
                           ),
                           FilledButton(
                             onPressed: () {
-                              List<Tripgetres> eurotrip = [];
-                              for (var trip in tripGetResponses) {
-                                if (trip.destinationZone == 'อาเซียน') {
-                                  eurotrip.add(trip);
-                                }
-                              }
                               setState(() {
-                                tripGetResponses = eurotrip;
+                                tripGetResponses = allTrips
+                                    .where(
+                                      (t) => t.destinationZone == 'อาเซียน',
+                                    )
+                                    .toList();
                               });
                             },
                             child: const Text('อาเซียน'),
                           ),
                           FilledButton(
                             onPressed: () {
-                              List<Tripgetres> eurotrip = [];
-                              for (var trip in tripGetResponses) {
-                                if (trip.destinationZone == 'เอเชีย') {
-                                  eurotrip.add(trip);
-                                }
-                              }
                               setState(() {
-                                tripGetResponses = eurotrip;
+                                tripGetResponses = allTrips
+                                    .where((t) => t.destinationZone == 'เอเชีย')
+                                    .toList();
                               });
                             },
                             child: const Text('เอเชีย'),
@@ -135,22 +124,84 @@ class _showtripState extends State<showtrip> {
                       ),
                     ),
                   ),
-                  Text('รายการทริป'),
+                  const SizedBox(height: 16),
+                  const Text('รายการทริป'),
                   Card(
-                    child: Column(
-                      children: tripGetResponses
-                          .map(
-                            (trip) => ListTile(
-                              leading: Image.network(trip.coverimage),
-                              title: Text(trip.name),
-                              subtitle: Text(trip.destinationZone),
-                              trailing: FilledButton(
-                                onPressed: () => gotoTrip(trip.idx),
-                                child: Text('ดูรายละเอียด'),
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: tripGetResponses.map((trip) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // 🔹 ชื่อทริป
+                              Text(
+                                trip.name,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                          )
-                          .toList(),
+                              const SizedBox(height: 8),
+
+                              // 🔹 เนื้อหาหลัก
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // รูปภาพ
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.network(
+                                      trip.coverimage,
+                                      width: 160,
+                                      height: 120,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              const Icon(
+                                                Icons.image_not_supported,
+                                                size: 60,
+                                              ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+
+                                  // รายละเอียด
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text("ประเทศ ${trip.country}"),
+                                        const SizedBox(height: 4),
+                                        Text("ระยะเวลา ${trip.duration} วัน"),
+                                        const SizedBox(height: 4),
+                                        Text("ราคา ${trip.price} บาท"),
+                                        const SizedBox(height: 8),
+
+                                        // ปุ่ม
+                                        FilledButton(
+                                          onPressed: () => gotoTrip(trip.idx),
+                                          child: const Text(
+                                            "รายละเอียดเพิ่มเติม",
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Divider(),
+                            ],
+                          );
+                        }).toList(),
+                      ),
                     ),
                   ),
                 ],
@@ -177,7 +228,8 @@ class _showtripState extends State<showtrip> {
 
     var res = await http.get(Uri.parse('$url/trips'));
     log(res.body);
-    tripGetResponses = tripgetresFromJson(res.body);
+    allTrips = tripgetresFromJson(res.body); // เก็บข้อมูลดิบทั้งหมด
+    tripGetResponses = List.from(allTrips); // โชว์ครั้งแรก = ทั้งหมด
     log(tripGetResponses.length.toString());
   }
 
